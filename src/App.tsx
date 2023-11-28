@@ -5,6 +5,9 @@
 
 import "./App.scss";
 
+//import { MarkerPinApp } from "./MarkerPinApp"; 
+import { MarkerPinWidgetProvider } from "./MarkerPinWidget"; 
+
 import type { ScreenViewport } from "@itwin/core-frontend";
 import { FitViewTool, IModelApp, StandardViewId } from "@itwin/core-frontend";
 import { FillCentered } from "@itwin/core-react";
@@ -193,7 +196,7 @@ const App: React.FC = () => {
           }),
           new MeasureToolsUiItemsProvider(),
           //Custom Providers:
-          //new MarkerPinWidget (),
+          new MarkerPinWidgetProvider (),
           //new MarkerPinApp (), 
         ]}
         // Bing and Mapbox keys:
@@ -209,3 +212,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+
