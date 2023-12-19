@@ -133,7 +133,7 @@ class SamplePinMarker extends Marker {
     const menuEntries: PopupMenuEntry[] = [];
 
     menuEntries.push({ label: "Center View", onPicked: this._centerMarkerCallback });
-    menuEntries.push({ label: "Remove Marker", onPicked: this._removeMarkerCallback });
+    menuEntries.push({ label: "Issue Solved", onPicked: this._removeMarkerCallback });
 
     const offset = 8;
     PopupMenu.onPopupMenuEvent.emit({
@@ -286,6 +286,7 @@ class SampleMarkerSet extends MarkerSet<SamplePinMarker> {
 export class MarkerPinDecorator implements Decorator {
   private _autoMarkerSet = new SampleMarkerSet();
   private _manualMarkerSet = new SampleMarkerSet();
+  private _digerMarkerSet = new SampleMarkerSet();
 
   /* Remove all existing markers from the "auto" markerset and create new ones for the given points. */
   public setMarkersData(markersData: MarkerData[], pinImage: HTMLImageElement, onMouseButtonCallback?: any): void {
@@ -309,6 +310,16 @@ export class MarkerPinDecorator implements Decorator {
       vp.invalidateDecorations();
   }
 
+  public addDigerPoint(point: Point3d, pinImage: HTMLImageElement): void {
+    const markerData: MarkerData = { point };
+    this._digerMarkerSet.markers.add(new SamplePinMarker(markerData, "Manual", "", pinImage, this._digerMarkerSet));
+
+    // When the markers change we notify the viewmanager to remove the existing decorations
+    const vp = IModelApp.viewManager.selectedView;
+    if (undefined !== vp)
+      vp.invalidateDecorations();
+  }
+
   /* Adds a single new marker to the "manual" markerset */
   public addMarkerPoint(markerData: MarkerData, pinImage: HTMLImageElement, title?: string, description?: string, scale?: Range1dProps, onMouseButtonCallback?: any): void {
     this._manualMarkerSet.markers.add(new SamplePinMarker(markerData, title ?? "Manual", description ?? "description test goes here", pinImage, this._manualMarkerSet, scale, onMouseButtonCallback));
@@ -318,6 +329,16 @@ export class MarkerPinDecorator implements Decorator {
     if (undefined !== vp)
       vp.invalidateDecorations();
   }
+
+  public addDigerMarkerPoint(markerData: MarkerData, pinImage: HTMLImageElement, title?: string, description?: string, scale?: Range1dProps, onMouseButtonCallback?: any): void {
+    this._digerMarkerSet.markers.add(new SamplePinMarker(markerData, title ?? "Manual", description ?? "description test goes here", pinImage, this._manualMarkerSet, scale, onMouseButtonCallback));
+
+    // When the markers change we notify the viewmanager to remove the existing decorations
+    const vp = IModelApp.viewManager.selectedView;
+    if (undefined !== vp)
+      vp.invalidateDecorations();
+  }
+
 
   /** Clears all the markers and invalidates the current decorations */
   public clearMarkers() {
@@ -339,11 +360,15 @@ export class MarkerPinDecorator implements Decorator {
     if (!this._manualMarkerSet.viewport) {
       this._manualMarkerSet.changeViewport(context.viewport);
     }
+    if (!this._digerMarkerSet.viewport) {
+      this._digerMarkerSet.changeViewport(context.viewport);
+    }
     /* This method is called for every rendering frame.  We will reuse our marker sets since the locations and images
        for the markers don't typically change. */
     if (context.viewport.view.isSpatialView()) {
       this._autoMarkerSet.addDecoration(context);
       this._manualMarkerSet.addDecoration(context);
+      this._digerMarkerSet.addDecoration(context);
     }
   }
   // END DECORATE

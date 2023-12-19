@@ -1,0 +1,24 @@
+.marker {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: red;
+    border-radius: 50%;
+  }
+  
+  .marker.float {
+    background-color: blue;
+  }
+  
+  .marker.road {
+    background-color: green;
+  }
+  
+  .marker.lightening {
+    background-color: yellow;
+  }
+  
+  .marker.user {
+    background-color: purple;
+  }
+  

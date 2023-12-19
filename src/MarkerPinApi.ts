@@ -29,7 +29,12 @@ export default class MarkerPinApi {
   // END SETMARKERDATA
 
   public static addMarkerPoint(decorator: MarkerPinDecorator, point: Point3d, pinImage: HTMLImageElement) {
+    console.log(`addMarkerPoint ${point} and pinImage = ${pinImage}`);
     decorator.addPoint(point, pinImage);
+  }
+  public static addDigerMarkerPoint(decorator: MarkerPinDecorator, point: Point3d, pinImage: HTMLImageElement) {
+    console.log(`addMarkerPoint ${point} and pinImage = ${pinImage}`);
+    decorator.addDigerPoint(point, pinImage);
   }
 
   // START ENABLEDECORATIONS

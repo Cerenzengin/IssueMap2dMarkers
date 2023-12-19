@@ -4,12 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import "./App.scss";
-
-//import { MarkerPinApp } from "./MarkerPinApp"; 
+import { DigercodWidgetProvider } from "./Digercod";
 import { MarkerPinWidgetProvider } from "./MarkerPinWidget"; 
+//import { MarkerPinApp } from "./MarkerPinWidget"; 
+import { ViewerViewportControlOptions } from "@itwin/web-viewer-react";
+import { ViewSetup } from "./common/ViewSetup";
+import { UiFramework } from "@itwin/appui-react";
+import { mapLayerOptions } from "./common/MapLayerOptions";
 
-import type { ScreenViewport } from "@itwin/core-frontend";
-import { FitViewTool, IModelApp, StandardViewId } from "@itwin/core-frontend";
+import { DisplayStyle3dProps, GlobeMode,} from "@itwin/core-common";
+
+import { FitViewTool, IModelApp, StandardViewId, ScreenViewport } from "@itwin/core-frontend";
 import { FillCentered } from "@itwin/core-react";
 import { ProgressLinear } from "@itwin/itwinui-react";
 import {
@@ -40,6 +45,28 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Auth } from "./Auth";
 import { history } from "./history";
+
+const uiProviders = [new MarkerPinWidgetProvider()];
+const viewportOptions: ViewerViewportControlOptions = {
+  viewState: async (iModelConnection) => {
+    const viewState = await ViewSetup.getDefaultView(iModelConnection);
+
+    // The marker pins look better in a top view
+    viewState.setStandardRotation(StandardViewId.Top);
+
+    const range = viewState.computeFitRange();
+    const aspect = viewState.getAspectRatio();    
+
+    viewState.lookAtVolume(range, aspect);
+
+    return viewState;
+  },
+};
+
+const iTwinId = process.env.IMJS_ITWIN_ID;
+const iModelId = process.env.IMJS_IMODEL_ID;
+
+
 
 const App: React.FC = () => {
   const [iModelId, setIModelId] = useState(process.env.IMJS_IMODEL_ID);
@@ -149,6 +176,11 @@ const App: React.FC = () => {
     MeasurementActionToolbar.setDefaultActionProvider();
   }, []);
 
+  UiFramework.frontstages.onFrontstageReadyEvent.addListener((event) => {
+    const { bottomPanel } = event.frontstageDef;
+    bottomPanel && (bottomPanel.size = 250);
+  });
+  
   return (
     <div className="viewer-container">
       {!accessToken && (
@@ -163,10 +195,12 @@ const App: React.FC = () => {
         iModelId={iModelId ?? ""}
         changeSetId={changesetId}
         authClient={authClient}
+        viewportOptions={viewportOptions}
         viewCreatorOptions={viewCreatorOptions}
         enablePerformanceMonitors={true} // see description in the README (https://www.npmjs.com/package/@itwin/web-viewer-react)
         onIModelAppInit={onIModelAppInit}
         uiProviders={[
+          new DigercodWidgetProvider(),
           new ViewerNavigationToolsProvider(),
           new ViewerContentToolsProvider({
             vertical: {
