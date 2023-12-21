@@ -11,7 +11,6 @@ import { ViewerViewportControlOptions } from "@itwin/web-viewer-react";
 import { ViewSetup } from "./common/ViewSetup";
 import { UiFramework } from "@itwin/appui-react";
 import { mapLayerOptions } from "./common/MapLayerOptions";
-import { HeatmapDecoratorWidgetProvider } from "./HeatmapDecoratorWidget";
 
 import { DisplayStyle3dProps, GlobeMode,} from "@itwin/core-common";
 
@@ -77,10 +76,10 @@ const App: React.FC = () => {
   );
   // Add state for API keys
   const [bingMapsKey, setBingMapsKey] = useState(
-   process.env.IMJS_BING_MAPS_KEY || "ApVESqqc5C48K9smPp5LgpMUCNnfYiQJndhuCPbqUifN5x9XaD2yXCWy4FqQ6KSR"
+   process.env.IMJS_BING_MAPS_KEY || "Aoi34HHd6h-rU7c065J2luy8W_EqT769AyM0Jq33ogiZq7TH0OgBSaedElmSO-eF"
  );
  const [mapboxKey, setMapboxKey] = useState(
-   process.env.IMJS_MAPBOX_KEY || "pk.eyJ1IjoiY2VyZW56ZW5naW4iLCJhIjoiY2xwaDExeDd3MDJvbTJrdDN6bWhxeHI5YSJ9.mFKaszJah-f5AAfp9scLxg"
+   process.env.IMJS_MAPBOX_KEY || "pk.eyJ1IjoiY2VyZW56ZW5naW4iLCJhIjoiY2xxY2hmdW56MDI3djJrcnFmdnVzd2c0ciJ9.sjfCZCqWpU9NNOYp1tjcNw"
  );
  const [cesiumAssetId, setCesiumAssetId] = useState(
    process.env.IMJS_CESIUM_ASSET_ID || "eyJqdGkiOiI1ZmE5OTExZi1kYWJhLTRlMzQtYWE2Yi0yN2JhYmZjMTM5NzkiLCJpZCI6MTgxMDM1LCJpYXQiOjE3MDEwOTY4NDF9"
@@ -161,8 +160,6 @@ const App: React.FC = () => {
     tileTreesLoaded().finally(() => {
       void IModelApp.tools.run(FitViewTool.toolId, viewPort, true, false);
       viewPort.view.setStandardRotation(StandardViewId.Iso);
-      const fmtr = IModelApp.quantityFormatter;
-      fmtr.setActiveUnitSystem("metric")
     });
   }, []);
 
@@ -234,7 +231,7 @@ const App: React.FC = () => {
           new MeasureToolsUiItemsProvider(),
           //Custom Providers:
           new MarkerPinWidgetProvider (),
-          new HeatmapDecoratorWidgetProvider () ,
+          //new MarkerPinApp (), 
         ]}
         // Bing and Mapbox keys:
         mapLayerOptions = { {BingMaps: { key: "key", value: bingMapsKey},

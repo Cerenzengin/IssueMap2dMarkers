@@ -1,0 +1,23 @@
+/* MarkerStyles.css */
+
+.marker {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+  }
+  
+  .marker img {
+    max-width: 50%; /* Set the maximum width to 100% of the container */
+    max-height: 50%; /* Set the maximum height to 100% of the container */
+    border-radius: 25%; /* Preserve the circular shape for rounded images */
+  }
+  /* MarkerStyles.css */
+
+.marker img {
+    max-width: 100px; /* Set the maximum width for the image */
+    max-height: 100px; /* Set the maximum height for the image */
+  }
+  
