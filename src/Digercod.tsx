@@ -8,7 +8,7 @@ import GeoLocationApi from "./GeoLocationApi";
 import { Cartographic } from "@itwin/core-common";
 import { IModelApp } from "@itwin/core-frontend";
 
-interface IssueMarker {
+export interface IssueMarker {
   point: Point3d;
   issueType: "float" | "road" | "lightening" | "user";
   description: string;

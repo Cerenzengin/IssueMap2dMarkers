@@ -20,3 +20,5 @@ export default class HeatmapDecoratorApi {
     IModelApp.viewManager.dropDecorator(decorator);
   }
 }
+
+

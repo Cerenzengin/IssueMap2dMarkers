@@ -11,40 +11,43 @@ import {
   SpatialViewDefinitionProps
 } from "@itwin/core-common";
 
+
+// GeoLocationApi.tsx
+
+
+
 export default class GeoLocationApi {
+  private static _locationProvider?: BingLocationProvider;
 
-    /** Used by `travelTo` to find a destination given a name */
-    private static _locationProvider?: BingLocationProvider;
+  public static readonly maxQueryDistance = 50000;
 
-    /** Used to determine how far out to search - this is in meters and is slightly less than 50 miles */
-    public static readonly maxQueryDistance = 50000;
+  public static get locationProvider(): BingLocationProvider {
+    return (
+      this._locationProvider ||
+      (this._locationProvider = new BingLocationProvider())
+    );
+  }
+
   
-    /** Provides conversion from a place name to a location on the Earth's surface. */
-    public static get locationProvider(): BingLocationProvider {
-      return (
-        this._locationProvider ||
-        (this._locationProvider = new BingLocationProvider())
-      );
-    }
-  
+  public static async getLocation(destination?: string): Promise<any> {
+  return this.locationProvider.getLocation(destination || ""); // Provide a default empty string if destination is undefined
+}
+
   public static async travelTo(
     viewport: ScreenViewport,
     destination: string
   ): Promise<boolean> {
     if (!viewport.view.is3d()) return false;
 
-    // Obtain latitude and longitude.
-    const location = await this.locationProvider.getLocation(destination);
+    const location = await this.getLocation(destination);
     if (!location) return false;
 
-    // Determine the height of the Earth's surface at this location.
     const elevationOffset = await queryTerrainElevationOffset(
       viewport,
       location.center
     );
     if (elevationOffset !== undefined) location.center.height = elevationOffset;
 
-    // Move the viewport to the location.
     let viewArea: Range3d;
     if (location.area) {
       const northeastPoint = viewport.view.cartographicToRoot(
@@ -58,7 +61,6 @@ export default class GeoLocationApi {
 
       viewArea = Range3d.create(northeastPoint, southwestPoint);
     } else {
-      // area doesn't exist so create view bounds with a radius of 100 meters
       const center = viewport.view.cartographicToRoot(location.center);
       if (!center) return false;
 
@@ -74,7 +76,6 @@ export default class GeoLocationApi {
     return true;
   }
 
-  /** Changes the background map between using open street map street view and bing hybrid view */
   public static setMap(viewport: Viewport, streetsOnlyMap: boolean) {
     if (!viewport.view.is3d()) return;
 
@@ -93,7 +94,4 @@ export default class GeoLocationApi {
       });
     }
   }
-
-
-
 }

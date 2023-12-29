@@ -258,7 +258,6 @@ class SampleMarkerSet extends MarkerSet<SamplePinMarker> {
       this.markers.add(new SamplePinMarker(markerData, `Marker ${index++}`, ``, image, this, undefined, onMouseButtonCallback));
     }
   }
-  // another comment
   // END SETMARKERSDATA
 
   // START REMOVEMARKER

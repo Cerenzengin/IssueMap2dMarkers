@@ -170,8 +170,9 @@ export default class HeatmapDecorator implements Decorator {
     return squareRange;
   }
 
-  public setRange(range: Range2d) {
+  public setRange(range: Range2d): void  {
     this._range = HeatmapDecorator._computeSquareRange(range);
+    this._decorationChanged();
   }
 
   public setHeight(height: number) {
@@ -179,13 +180,13 @@ export default class HeatmapDecorator implements Decorator {
   }
 
   /* Change the heatmap points */
-  public setPoints(points: Point3d[]) {
+  public setPoints(points: Point3d[]): void {
     this._points = points;
     this._decorationChanged();
   }
 
   /* Change the spread factor */
-  public setSpreadFactor(spreadFactor: number) {
+  public setSpreadFactor(spreadFactor: number): void {
     if (0 < spreadFactor && 100 >= spreadFactor) {
       this._spreadFactor = spreadFactor;
       this._decorationChanged();
@@ -332,4 +333,6 @@ export default class HeatmapDecorator implements Decorator {
       context.addDecoration(GraphicType.WorldOverlay, graphic);
     }
   }
+  
 }
+

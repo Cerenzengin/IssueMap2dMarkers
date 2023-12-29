@@ -13,65 +13,55 @@ import { Cartographic } from "@itwin/core-common";
 import HeatmapDecorator from "./HeatmapDecorator";
 import HeatmapDecoratorApi from "./HeatmapDecoratorApi";
 import { IModelApp } from "@itwin/core-frontend";
-import GeoLocationApi from "./GeoLocationApi";
 
 export const HeatmapDecoratorWidget = () => {
   const viewport = useActiveViewport();
-  const [heatmapDecorator, setHeatmapDecorator] = useState(new HeatmapDecorator());
+  const [heatmapDecorator] = useState(new HeatmapDecorator());
   const [userLocation, setUserLocation] = useState<Point3d | null>(null);
-  const [modelSpaceLocation, setModelSpaceLocation] = useState<Point3d | null>(null);
   const [isHeatmapDisplayed, setIsHeatmapDisplayed] = useState(false);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
+      (position) => {
         const userGeoLocation = new Point3d(position.coords.longitude, position.coords.latitude, 0);
         setUserLocation(userGeoLocation);
-
-        const cartographic = Cartographic.fromDegrees({
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
-          height: 0
-        });
-
-        const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic([cartographic]);
-        if (spatialLocation.length > 0) {
-          setModelSpaceLocation(spatialLocation[0]);
-          heatmapDecorator.setPoints(spatialLocation);
-          heatmapDecorator.setSpreadFactor(10); // Adjust as needed
-          heatmapDecorator.setRange(Range2d.createXY(spatialLocation[0].x, spatialLocation[0].y)); // Set range based on model coordinates
-          HeatmapDecoratorApi.enableDecorations(heatmapDecorator);
-          setIsHeatmapDisplayed(true);
-        }
       },
       (error) => {
         console.error("Error getting user's geolocation:", error.message);
+        setUserLocation(null);
       }
     );
-  }, [viewport]);
+  }, []);
 
-  const toggleHeatmap = () => {
-    if (isHeatmapDisplayed) {
-      HeatmapDecoratorApi.disableDecorations(heatmapDecorator);
-    } else {
-      HeatmapDecoratorApi.enableDecorations(heatmapDecorator);
+  const handleShowHeatmap = async () => {
+    if (!userLocation || !viewport) {
+      console.error("User location or viewport is not available.");
+      return;
     }
-    setIsHeatmapDisplayed(!isHeatmapDisplayed);
+
+    const cartesian = [Cartographic.fromDegrees({longitude: userLocation.x, latitude: userLocation.y, height: 0})];
+    const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic(cartesian);
+
+    if (spatialLocation.length > 0) {
+      heatmapDecorator.setPoints(spatialLocation);
+      heatmapDecorator.setSpreadFactor(700);
+      heatmapDecorator.setRange(new Range2d(-100, -100, 100, 100));
+      HeatmapDecoratorApi.enableDecorations(heatmapDecorator);
+      setIsHeatmapDisplayed(true);
+    }
   };
 
   return (
     <div className="sample-options">
       <div className="sample-grid">
         <Alert type="informational" className="no-icon">
-          Click the button to display the heatmap at your location.
+          Click the button to show the heatmap based on your current location.
         </Alert>
-        <Button onClick={toggleHeatmap}>
-          {isHeatmapDisplayed ? "Hide Heatmap" : "Show Heatmap"}
-        </Button>
-        {isHeatmapDisplayed && modelSpaceLocation && (
+        <Button onClick={handleShowHeatmap}>Show Heatmap</Button>
+        {isHeatmapDisplayed && userLocation && (
           <div>
             <p>Heatmap displayed on the map.</p>
-            <p>Model Space Coordinates: X: {modelSpaceLocation.x.toFixed(6)}, Y: {modelSpaceLocation.y.toFixed(6)}</p>
+            <p>Latitude: {userLocation.y.toFixed(6)}, Longitude: {userLocation.x.toFixed(6)}</p>
           </div>
         )}
       </div>
