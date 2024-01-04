@@ -40,6 +40,8 @@ export const HeatmapDecoratorWidget = () => {
 
     // Grab range of the contents of the view. We'll use this to position the random markers.
     const range3d = vp.view.computeFitRange();
+    alert(range3d)
+    console.log(range3d)
     const range = Range2d.createFrom(range3d);
 
     // We'll draw the heatmap as an overlay in the center of the view's Z extents.

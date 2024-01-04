@@ -14,6 +14,7 @@ import HeatmapDecorator from "./HeatmapDecorator";
 import HeatmapDecoratorApi from "./HeatmapDecoratorApi";
 import { IModelApp } from "@itwin/core-frontend";
 import GeoLocationApi from "./GeoLocationApi";
+import {CirclePointGenerator, CrossPointGenerator} from "./common/point-selector/PointGenerators";
 
 export const HeatmapDecoratorWidget = () => {
   const viewport = useActiveViewport();
@@ -37,9 +38,22 @@ export const HeatmapDecoratorWidget = () => {
         const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic([cartographic]);
         if (spatialLocation.length > 0) {
           setModelSpaceLocation(spatialLocation[0]);
-          heatmapDecorator.setPoints(spatialLocation);
-          heatmapDecorator.setSpreadFactor(10); // Adjust as needed
-          heatmapDecorator.setRange(Range2d.createXY(spatialLocation[0].x, spatialLocation[0].y)); // Set range based on model coordinates
+          const size = 1;
+          const allPoints: Point3d[] = [];
+          
+          const topLeft = new Point3d(spatialLocation[0].x - size / 10, spatialLocation[0].y - size / 10, spatialLocation[0].z);
+          const topRight = new Point3d(spatialLocation[0].x + size / 10, spatialLocation[0].y - size / 10, spatialLocation[0].z);
+          const bottomLeft = new Point3d(spatialLocation[0].x - size / 10, spatialLocation[0].y + size / 10, spatialLocation[0].z);
+          const bottomRight = new Point3d(spatialLocation[0].x + size / 10, spatialLocation[0].y + size / 10, spatialLocation[0].z);
+          
+          allPoints.push(topLeft, topRight, bottomLeft, bottomRight);
+          const circlePoints = new CrossPointGenerator().generatePoints(1, Range2d.createXYXY(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y));
+          heatmapDecorator.setPoints(circlePoints);
+          heatmapDecorator.setSpreadFactor(2); // Adjust as needed
+          const range = Range2d.createXYXY(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y);
+          // heatmapDecorator.setRange(Range2d.createXY(spatialLocation[0].x, spatialLocation[0].y)); // Set range based on model coordinates
+          heatmapDecorator.setRange(range); // Set range based on model coordinates
+          heatmapDecorator.setHeight(0)
           HeatmapDecoratorApi.enableDecorations(heatmapDecorator);
           setIsHeatmapDisplayed(true);
         }
