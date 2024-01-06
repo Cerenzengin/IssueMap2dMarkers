@@ -7,6 +7,7 @@ import { MarkerPinDecorator } from "./common/marker-pin/MarkerPinDecorator";
 import GeoLocationApi from "./GeoLocationApi";
 import { Cartographic } from "@itwin/core-common";
 import { IModelApp } from "@itwin/core-frontend";
+import HeatmapDecorator from "./HeatmapDecorator"; // Import HeatmapDecorator from your HeatmapDecorator.tsx file
 
 export interface IssueMarker {
   point: Point3d;
@@ -26,7 +27,10 @@ const DigercodWidget = () => {
   const [markerPinDecorator] = React.useState<MarkerPinDecorator>(() => {
     return MarkerPinApi.setupDecorator();
   });
-
+  const [heatmapDecorator] = React.useState<HeatmapDecorator>(() => {
+    return new HeatmapDecorator();
+  });
+  
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -76,26 +80,47 @@ const DigercodWidget = () => {
     cartesian.push(Cartographic.fromDegrees({longitude : userLocation.x, latitude : userLocation.y, height : 0}))
     const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic(cartesian);
   
-    const newMarker: IssueMarker = {
-      point: spatialLocation[0],
-      issueType: selectedIssueType,
-      description,
-      photo,
-    };
-  
-    // Use MarkerPinApi to add a marker
-    // const markerDecorator = MarkerPinApi.setupDecorator();
+    const formData = new FormData();
+    formData.append('issueType', selectedIssueType);
+    formData.append('description', description);
+    if (photo) {
+      formData.append('photo', photo);
+    }
+    formData.append('latitude', String(spatialLocation[0].x));
+    formData.append('longitude', String(spatialLocation[0].y));
 
+    // Send POST request to the server
+    try {
+      const response = await fetch('http://localhost:3000/api/issues', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const newIssue = await response.json();
+        const newMarker = {
+          point: spatialLocation[0],
+          issueType: selectedIssueType,
+          description: description,
+          photo: photo,
+        };
+        setMarkers([...markers, newMarker]);
+        setSelectedIssueType("float");
+        setDescription("");
+        setPhoto(undefined);
+      } else {
+        console.error('Failed to send issue data');
+      }
+    } catch (error) {
+      console.error('Error sending issue data:', error);
+    }
+    
     MarkerPinApi.addDigerMarkerPoint(markerPinDecorator, spatialLocation[0], MarkerPinApi._images.get("pin_google_maps.svg")!);
-  
-    setMarkers([...markers, newMarker]);
-    setDescription("");
-    setPhoto(undefined);
-  
-    // Add a comment here indicating that a marker has been added to the map
+
     console.log(`Marker added at Latitude: ${userLocation.y.toFixed(6)} = ${spatialLocation[0].y}, Longitude: ${userLocation.x.toFixed(6)} = ${spatialLocation[0].x}}`);
 
   };
+  
 
 
   const handleToggleMarkers = () => {

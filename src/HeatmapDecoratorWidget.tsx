@@ -15,6 +15,40 @@ import HeatmapDecoratorApi from "./HeatmapDecoratorApi";
 import { IModelApp } from "@itwin/core-frontend";
 import GeoLocationApi from "./GeoLocationApi";
 import {CirclePointGenerator, CrossPointGenerator} from "./common/point-selector/PointGenerators";
+import { BasePointGenerator } from './common/point-selector/PointGenerators';
+
+
+//NEW POINT GENERATOR
+interface IssueMarker {
+  location: {
+    x: number;
+    y: number;
+  };
+  intensity: number;
+}
+
+export class UserLocationPointGenerator extends BasePointGenerator {
+  private issueMarkers: IssueMarker[] = [];
+  private heatmapDecorator: HeatmapDecorator;
+
+  constructor(issueMarkers: IssueMarker[], heatmapDecorator: HeatmapDecorator) {
+    super();
+    this.issueMarkers = issueMarkers;
+    this.heatmapDecorator = heatmapDecorator;
+  }
+
+  public generatePoints(numPoints: number, range: Range2d): Point3d[] {
+    const points: Point3d[] = [];
+
+    this.issueMarkers.forEach(issue => {
+      for (let i = 0; i < issue.intensity; i++) {
+        points.push(new Point3d(issue.location.x, issue.location.y, 0));
+      }
+    });
+
+    return points;
+  }
+}
 
 export const HeatmapDecoratorWidget = () => {
   const viewport = useActiveViewport();
@@ -22,6 +56,7 @@ export const HeatmapDecoratorWidget = () => {
   const [userLocation, setUserLocation] = useState<Point3d | null>(null);
   const [modelSpaceLocation, setModelSpaceLocation] = useState<Point3d | null>(null);
   const [isHeatmapDisplayed, setIsHeatmapDisplayed] = useState(false);
+
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(

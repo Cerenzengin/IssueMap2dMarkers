@@ -35,6 +35,8 @@ export class CirclePointGenerator extends BasePointGenerator {
   }
 }
 
+
+
 /** Create an array of points arranged in an X */
 export class CrossPointGenerator extends BasePointGenerator {
 
