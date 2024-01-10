@@ -20,6 +20,7 @@ import { PopupMenu } from "./common/marker-pin/PopupMenu";
 import { PointSelector } from "./common/point-selector/PointSelector";
 import MarkerPinApi from "./MarkerPinApi";
 import "./MarkerPin.scss";
+import { mongoAppApi } from "./common/mongo";
 
 interface ManualPinSelection {
   name: string;
@@ -137,6 +138,12 @@ const MarkerPinWidget = () => {
     MarkerPinApi.addMarkerPoint(markerPinDecorator, point, MarkerPinApi._images.get(manualPinState.image)!);
   };
 
+  //To load data to mongo.db
+  const _loadMongoData = async () => {
+    const allIssues = await mongoAppApi.getAllIssues()
+    console.log(allIssues)
+  }
+
   /** This callback will be executed when the user clicks the UI button.  It will start the tool which
    * handles further user input.
    */
@@ -168,6 +175,7 @@ const MarkerPinWidget = () => {
             className="manual-placement-btn"
             onClick={_onStartPlaceMarkerTool}
             title="Click here and then click the view to place a new marker">Place Marker</Button>
+          <Button styleType="high-visibility" className="load-mongo-data-btn" onClick={() => _loadMongoData()}>Load Issues</Button>
         </Fieldset>
       </div>
       <Alert type="informational" className="instructions">
