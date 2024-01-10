@@ -12,7 +12,7 @@ import { mongoAppApi } from "./common/mongo";
 
 export interface IssueMarker {
   point: Point3d;
-  issueType: "float" | "road" | "lightening" | "user";
+  issueType: "float" | "road" | "lightening" | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage" | "other";
   description: string;
   photo?: File;
 }
@@ -20,7 +20,7 @@ export interface IssueMarker {
 const DigercodWidget = () => {
   const viewport = useActiveViewport();
   const [showMarkers, setShowMarkers] = useState<boolean>(true);
-  const [selectedIssueType, setSelectedIssueType] = useState<"float" | "road" | "lightening">("float");
+  const [selectedIssueType, setSelectedIssueType] = useState<"float" | "road" | "lightening"  | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage"| "other">("float")
   const [description, setDescription] = useState<string>("");
   const [photo, setPhoto] = useState<File | undefined>(undefined);
   const [markers, setMarkers] = useState<IssueMarker[]>([]);
@@ -82,11 +82,23 @@ const DigercodWidget = () => {
     const cartesian : Cartographic[] =  [];
     cartesian.push(Cartographic.fromDegrees({longitude : userLocation.x, latitude : userLocation.y, height : 0}))
     const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic(cartesian);
+    
+    const newMarker: IssueMarker = {
+      point: spatialLocation[0],
+      issueType: selectedIssueType,
+      description,
+      photo,
+    };
+
+    setMarkers([...markers, newMarker]);
+    setDescription("");
+    setPhoto(undefined);
 
     const insertionResponse = await mongoAppApi.insertIssue(selectedIssueType, description, spatialLocation[0].x, spatialLocation[0].y)
     console.log(insertionResponse)
     setInserted(true);
-    
+
+        // Use MarkerPinApi to add a marker
     MarkerPinApi.addDigerMarkerPoint(markerPinDecorator, spatialLocation[0], MarkerPinApi._images.get("pin_google_maps.svg")!);
 
     console.log(`Marker added at Latitude: ${userLocation.y.toFixed(6)} = ${spatialLocation[0].y}, Longitude: ${userLocation.x.toFixed(6)} = ${spatialLocation[0].x}}`);
@@ -99,7 +111,7 @@ const DigercodWidget = () => {
     setShowMarkers(!showMarkers);
   };
 
-  const handleIssueTypeChange = (value: "float" | "road" | "lightening") => {
+  const handleIssueTypeChange = (value: "float" | "road" | "lightening"  | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage" | "other") => {
     setSelectedIssueType(value);
   };
 
@@ -148,9 +160,16 @@ const DigercodWidget = () => {
           { value: "float", label: "Float" },
           { value: "road", label: "Road" },
           { value: "lightening", label: "Lightening" },
+          { value: "maintenance", label: "Maintenance" },
+          { value: "noise", label: "Noise" },
+          { value: "crime", label: "Crime" },
+          { value: "traffic congestion", label: "Traffic Congestion" },
+          { value: "garbage", label: "Garbage" },
+          { value: "other", label: "Other" },
+
         ]}
         value={selectedIssueType}
-        onChange={(value) => handleIssueTypeChange(value as "float" | "road" | "lightening")}
+        onChange={(value) => handleIssueTypeChange(value as "float" | "road" | "lightening"  | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage" | "other")}
       />
       <Textarea
         className="description-input"
@@ -166,7 +185,7 @@ const DigercodWidget = () => {
       </Button>
 
       {/* Display photos for each marker */}
-      {markers.map((marker, index) => (
+      {showMarkers && markers.map((marker, index) => (
         <div key={index} className="marker-item">
           <p>Marker at Latitude: {marker.point.y.toFixed(6)}, Longitude: {marker.point.x.toFixed(6)}</p>
           <p>Description: {marker.description}</p>
