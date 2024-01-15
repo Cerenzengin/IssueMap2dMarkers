@@ -339,6 +339,10 @@ export class MarkerPinDecorator implements Decorator {
       vp.invalidateDecorations();
   }
 
+  /** Clears all the markers and invalidates the current decorations */
+  public clearDigerMarkers() {
+    this._digerMarkerSet.markers.clear();
+  }
 
   /** Clears all the markers and invalidates the current decorations */
   public clearMarkers() {

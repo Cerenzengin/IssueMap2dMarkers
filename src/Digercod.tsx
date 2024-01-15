@@ -9,6 +9,7 @@ import { Cartographic } from "@itwin/core-common";
 import { IModelApp } from "@itwin/core-frontend";
 import HeatmapDecorator from "./HeatmapDecorator"; // Import HeatmapDecorator from your HeatmapDecorator.tsx file
 import { mongoAppApi } from "./common/mongo";
+import HeatmapDecoratorApi from "./HeatmapDecoratorApi";
 
 export interface IssueMarker {
   point: Point3d;
@@ -33,6 +34,17 @@ const DigercodWidget = () => {
   });
   const [inserted, setInserted] = React.useState<boolean>(false);
   
+  useEffect(() => {
+    // Load and display heatmap
+    if (userLocation && markers.length > 0) {
+      const points = markers.map(marker => marker.point);
+
+      heatmapDecorator.setPoints(points);
+      heatmapDecorator.setSpreadFactor(10); // Adjust the spread factor as needed
+      HeatmapDecoratorApi.enableDecorations(heatmapDecorator);
+    }
+  }, [userLocation, markers]);
+
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -105,7 +117,13 @@ const DigercodWidget = () => {
 
   };
   
-
+  const _loadMongoData = async () => {
+    MarkerPinApi.clearAllMarkers(markerPinDecorator);
+    const allIssues = await mongoAppApi.getAllIssues()
+    allIssues.forEach((issue: any) => {
+      MarkerPinApi.addDigerMarkerPoint(markerPinDecorator,  new Point3d(issue.latitude, issue.longitude, 0), MarkerPinApi._images.get("pin_google_maps.svg")!);
+    });
+  }
 
   const handleToggleMarkers = () => {
     setShowMarkers(!showMarkers);
@@ -183,6 +201,7 @@ const DigercodWidget = () => {
       <Button className="add-marker-button" onClick={handleAddMarkerClick}>
         Add Marker
       </Button>
+      <Button styleType="high-visibility" className="load-mongo-data-btn" onClick={() => _loadMongoData()}>See All Issues</Button>
 
       {/* Display photos for each marker */}
       {showMarkers && markers.map((marker, index) => (

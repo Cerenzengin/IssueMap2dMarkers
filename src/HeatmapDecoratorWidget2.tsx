@@ -5,7 +5,7 @@ import {
   UiItemsProvider,
   useActiveViewport,
   Widget,
-  WidgetState,
+  WidgetState
 } from "@itwin/appui-react";
 import { Alert, Button } from "@itwin/itwinui-react";
 import { Point3d, Range2d } from "@itwin/core-geometry";
@@ -14,24 +14,17 @@ import HeatmapDecorator from "./HeatmapDecorator";
 import HeatmapDecoratorApi from "./HeatmapDecoratorApi";
 import { IModelApp } from "@itwin/core-frontend";
 import GeoLocationApi from "./GeoLocationApi";
-import { MongoPointGenerator } from './common/point-selector/PointGenerators';
-import { mongoAppApi } from "./common/mongo";
+import {CirclePointGenerator, CrossPointGenerator} from "./common/point-selector/PointGenerators";
+import { BasePointGenerator } from './common/point-selector/PointGenerators';
 
-interface IssueMarker {
-  _id: string;
-  issueType: string;
-  description: string;
-  latitude: number;
-  longitude: number;
-}
 
-export const HeatmapDecoratorWidget: React.FC = () => {
+export const HeatmapDecoratorWidget = () => {
   const viewport = useActiveViewport();
   const [heatmapDecorator, setHeatmapDecorator] = useState(new HeatmapDecorator());
   const [userLocation, setUserLocation] = useState<Point3d | null>(null);
   const [modelSpaceLocation, setModelSpaceLocation] = useState<Point3d | null>(null);
   const [isHeatmapDisplayed, setIsHeatmapDisplayed] = useState(false);
-  const [mongoData, setMongoData] = useState<IssueMarker[]>([]); // State for MongoDB data
+
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -42,19 +35,30 @@ export const HeatmapDecoratorWidget: React.FC = () => {
         const cartographic = Cartographic.fromDegrees({
           longitude: position.coords.longitude,
           latitude: position.coords.latitude,
-          height: 0,
+          height: 0
         });
 
         const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic([cartographic]);
         if (spatialLocation.length > 0) {
           setModelSpaceLocation(spatialLocation[0]);
-
-          // Fetch MongoDB data and set it in state
-          const mongoIssues = await mongoAppApi.getAllIssues();
-          setMongoData(mongoIssues);
-
-          // Generate and display heatmap based on MongoDB data
-          generateHeatmap(mongoIssues);
+          const size = 1;
+          const allPoints: Point3d[] = [];
+          
+          const topLeft = new Point3d(spatialLocation[0].x - size / 10, spatialLocation[0].y - size / 10, spatialLocation[0].z);
+          const topRight = new Point3d(spatialLocation[0].x + size / 10, spatialLocation[0].y - size / 10, spatialLocation[0].z);
+          const bottomLeft = new Point3d(spatialLocation[0].x - size / 10, spatialLocation[0].y + size / 10, spatialLocation[0].z);
+          const bottomRight = new Point3d(spatialLocation[0].x + size / 10, spatialLocation[0].y + size / 10, spatialLocation[0].z);
+          
+          allPoints.push(topLeft, topRight, bottomLeft, bottomRight);
+          const circlePoints = new CrossPointGenerator().generatePoints(1, Range2d.createXYXY(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y));
+          heatmapDecorator.setPoints(circlePoints);
+          heatmapDecorator.setSpreadFactor(2); // Adjust as needed
+          const range = Range2d.createXYXY(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y);
+          // heatmapDecorator.setRange(Range2d.createXY(spatialLocation[0].x, spatialLocation[0].y)); // Set range based on model coordinates
+          heatmapDecorator.setRange(range); // Set range based on model coordinates
+          heatmapDecorator.setHeight(0)
+          HeatmapDecoratorApi.enableDecorations(heatmapDecorator);
+          setIsHeatmapDisplayed(true);
         }
       },
       (error) => {
@@ -63,40 +67,11 @@ export const HeatmapDecoratorWidget: React.FC = () => {
     );
   }, [viewport]);
 
-  const generateHeatmap = (data: IssueMarker[]) => {
-    const mongoGenerator = new MongoPointGenerator(data); // Create a MongoPointGenerator instance
-
-    // Calculate the range that encompasses all issue locations
-    let minX = Number.MAX_VALUE;
-    let minY = Number.MAX_VALUE;
-    let maxX = -Number.MAX_VALUE;
-    let maxY = -Number.MAX_VALUE;
-
-    for (const issue of data) {
-      minX = Math.min(minX, issue.longitude);
-      minY = Math.min(minY, issue.latitude);
-      maxX = Math.max(maxX, issue.longitude);
-      maxY = Math.max(maxY, issue.latitude);
-    }
-
-    const range = Range2d.createXYXY(minX, minY, maxX, maxY);
-
-    // Generate points for all issues within the calculated range
-    const points = mongoGenerator.generatePoints(range);
-    
-    heatmapDecorator.setRange(range); // Set range based on issue locations
-    heatmapDecorator.setPoints(points);
-    heatmapDecorator.setSpreadFactor(2); // Adjust as needed
-    heatmapDecorator.setHeight(0);
-    HeatmapDecoratorApi.enableDecorations(heatmapDecorator);
-    setIsHeatmapDisplayed(true);
-  };
-
   const toggleHeatmap = () => {
     if (isHeatmapDisplayed) {
       HeatmapDecoratorApi.disableDecorations(heatmapDecorator);
     } else {
-      generateHeatmap(mongoData); // Regenerate and display the heatmap
+      HeatmapDecoratorApi.enableDecorations(heatmapDecorator);
     }
     setIsHeatmapDisplayed(!isHeatmapDisplayed);
   };
@@ -105,15 +80,15 @@ export const HeatmapDecoratorWidget: React.FC = () => {
     <div className="sample-options">
       <div className="sample-grid">
         <Alert type="informational" className="no-icon">
-          Click the button to display the heatmap.
+          Click the button to display the heatmap at your location.
         </Alert>
         <Button onClick={toggleHeatmap}>
           {isHeatmapDisplayed ? "Hide Heatmap" : "Show Heatmap"}
         </Button>
-        {isHeatmapDisplayed && (
+        {isHeatmapDisplayed && modelSpaceLocation && (
           <div>
             <p>Heatmap displayed on the map.</p>
-            <p>Model Space Coordinates: X: {modelSpaceLocation?.x.toFixed(6)}, Y: {modelSpaceLocation?.y.toFixed(6)}</p>
+            <p>Model Space Coordinates: X: {modelSpaceLocation.x.toFixed(6)}, Y: {modelSpaceLocation.y.toFixed(6)}</p>
           </div>
         )}
       </div>
@@ -131,7 +106,7 @@ export class HeatmapDecoratorWidgetProvider implements UiItemsProvider {
         id: "HeatmapDecoratorWidget",
         label: "Heatmap Decorator Selector",
         defaultState: WidgetState.Open,
-        content: <HeatmapDecoratorWidget />,
+        content: <HeatmapDecoratorWidget />
       });
     }
     return widgets;

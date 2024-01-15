@@ -4,6 +4,49 @@
 *--------------------------------------------------------------------------------------------*/
 import { Point3d, Range2d, Range3d } from "@itwin/core-geometry";
 
+
+
+
+
+interface MongoDBIssue {
+  _id: string;
+  issueType: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+}
+
+export class MongoPointGenerator {
+  private issues: MongoDBIssue[];
+
+  constructor(issues: MongoDBIssue[]) {
+    this.issues = issues;
+  }
+
+  public generatePoints(range: Range2d): Point3d[] {
+    const points: Point3d[] = [];
+
+    for (const issue of this.issues) {
+      if (
+        issue.latitude >= range.low.y &&
+        issue.latitude <= range.high.y &&
+        issue.longitude >= range.low.x &&
+        issue.longitude <= range.high.x
+      ) {
+        const point = new Point3d(issue.longitude, issue.latitude, 0);
+        points.push(point);
+      }
+    }
+
+    return points;
+  }
+}
+
+
+
+
+
+
 /** For the purposes of the frontend samples, we provide three methods to generate
  * a collection of points.  Those are 'random', 'circle', and 'cross'.  This file contains
  * a PointGenerator class for each of those methods.

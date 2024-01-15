@@ -36,6 +36,11 @@ export default class MarkerPinApi {
     console.log(`addMarkerPoint ${point} and pinImage = ${pinImage}`);
     decorator.addDigerPoint(point, pinImage);
   }
+  public static clearAllMarkers(decorator: MarkerPinDecorator)  {
+    decorator.clearDigerMarkers();
+  }
+
+  
 
   // START ENABLEDECORATIONS
   public static enableDecorations(decorator: MarkerPinDecorator) {
