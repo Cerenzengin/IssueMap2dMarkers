@@ -135,6 +135,14 @@ class SamplePinMarker extends Marker {
     menuEntries.push({ label: "Center View", onPicked: this._centerMarkerCallback });
     menuEntries.push({ label: "Issue Solved", onPicked: this._removeMarkerCallback });
 
+    
+    // Include the issueType and description in the menu entry ???????????????
+    //
+    //
+    //
+    //Şuraya mongodbden çekilen datayı eklemek lazım gibi çünkü şuan markera tıkladığımda center view ve ıssue solved çıkıyo.
+   //// menuEntries.push({ label: "Show Issue", description: description, issueType: title, onPicked: this._showIssueCallback });
+
     const offset = 8;
     PopupMenu.onPopupMenuEvent.emit({
       menuVisible: true,
@@ -143,6 +151,8 @@ class SamplePinMarker extends Marker {
       entries: menuEntries,
     });
   }
+
+  
 
   /** This method will be called when the user clicks on the entry in the popup menu */
   private _removeMarkerCallback = (_entry: PopupMenuEntry) => {
