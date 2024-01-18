@@ -18,6 +18,7 @@ import GeoLocationApi from "./GeoLocationApi";
 import {CirclePointGenerator, CrossPointGenerator} from "./common/point-selector/PointGenerators";
 import { BasePointGenerator } from './common/point-selector/PointGenerators';
 import { mongoAppApi } from "./common/mongo";
+import { getRandomValue } from "@itwin/itwinui-react/cjs/core/utils";
 
 
 //NEW POINT GENERATOR
@@ -44,7 +45,7 @@ export class UserLocationPointGenerator extends BasePointGenerator {
 
     this.issueMarkers.forEach(issue => {
       for (let i = 0; i < issue.intensity; i++) {
-        points.push(new Point3d(issue.location.x, issue.location.y, 0));
+        points.push(new Point3d(issue.location.x, issue.location.y, i*10));
       }
     });
 
@@ -108,7 +109,7 @@ export const HeatmapDecoratorWidget = () => {
 
  
       const allPoints: Point3d[] = await Promise.all(allIssues.map(async (issue : any)  => {
-        const cartographic = Cartographic.fromDegrees({longitude: parseFloat(issue.longitude), latitude : parseFloat(issue.latitude), height: 10 });
+        const cartographic = Cartographic.fromDegrees({longitude: parseFloat(issue.longitude), latitude : parseFloat(issue.latitude), height: 1 });
         const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic([cartographic]);
           if (spatialLocation.length > 0) {
           return new Point3d(spatialLocation[0].x  , spatialLocation[0].y  , spatialLocation[0].z);
@@ -123,7 +124,7 @@ export const HeatmapDecoratorWidget = () => {
       const range = Range2d.createXYXY(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys));
       range.expandInPlace(0.05)
       heatmapDecorator.current.setPoints(validPoints);
-      heatmapDecorator.current.setSpreadFactor(0.001); // Adjust as needed
+      heatmapDecorator.current.setSpreadFactor(0.1); // Adjust as needed
       heatmapDecorator.current.setHeight(0)
       heatmapDecorator.current.setRange(range);
       HeatmapDecoratorApi.enableDecorations(heatmapDecorator.current);
