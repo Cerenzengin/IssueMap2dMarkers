@@ -200,7 +200,7 @@ export default class HeatmapDecorator implements Decorator {
    */
   private buildSampledGrid(gridSize: number): number[][] {
 
-    const baseRadius: number = gridSize * (this._spreadFactor / 100);
+    const baseRadius: number = gridSize * (this._spreadFactor / 10);
 
     const grid = new SampleGridBuilder(this._range, gridSize);
     for (const point of this._points) {

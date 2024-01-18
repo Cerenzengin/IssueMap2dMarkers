@@ -233,7 +233,7 @@ const App: React.FC = () => {
           }),
           new MeasureToolsUiItemsProvider(),
           //Custom Providers:
-          new MarkerPinWidgetProvider (),
+          // new MarkerPinWidgetProvider (),
           new HeatmapDecoratorWidgetProvider () ,
         ]}
         // Bing and Mapbox keys:
