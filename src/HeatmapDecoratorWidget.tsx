@@ -108,7 +108,7 @@ export const HeatmapDecoratorWidget = () => {
 
  
       const allPoints: Point3d[] = await Promise.all(allIssues.map(async (issue : any)  => {
-        const cartographic = Cartographic.fromDegrees({longitude: parseFloat(issue.longitude), latitude : parseFloat(issue.latitude), height: 1 });
+        const cartographic = Cartographic.fromDegrees({longitude: parseFloat(issue.longitude), latitude : parseFloat(issue.latitude), height: 10 });
         const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic([cartographic]);
           if (spatialLocation.length > 0) {
           return new Point3d(spatialLocation[0].y  , spatialLocation[0].x  , spatialLocation[0].z);
