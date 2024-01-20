@@ -109,16 +109,6 @@ const MarkerPinWidget = () => {
   const viewInit = () => {
     if (!viewport)
       return;
-
-    // Grab range of the contents of the view. We'll use this to position the random markers.
-    const range3d = viewport.view.computeFitRange();
-    const range = Range2d.createFrom(range3d);
-
-    // Grab the max Z for the view contents.  We'll use this as the plane for the auto-generated markers. */
-    const height = range3d.zHigh;
-
-    setRangeState(range);
-    setHeightState(height);
   };
 
   /** This callback will be executed when the user interacts with the PointSelector
@@ -157,9 +147,6 @@ const MarkerPinWidget = () => {
       <ToggleSwitch className="show-markers" label="Show markers" labelPosition="right" checked={showDecoratorState} onChange={() => setShowDecoratorState(!showDecoratorState)} />
 
       <div className="sample-grid">
-        <Fieldset legend="Auto-generate locations" className="point-cloud">
-          <PointSelector onPointsChanged={_onPointsChanged} range={rangeState} />
-        </Fieldset>
         <Fieldset legend="Manual placement" className="manual-placement">
           <RadioTileGroup>
             {manualPinSelections.map((pin, index) =>

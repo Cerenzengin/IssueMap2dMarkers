@@ -18,9 +18,20 @@ import GeoLocationApi from "./GeoLocationApi";
 import {CirclePointGenerator, CrossPointGenerator} from "./common/point-selector/PointGenerators";
 import { BasePointGenerator } from './common/point-selector/PointGenerators';
 import { mongoAppApi } from "./common/mongo";
+import { getRandomValue } from "@itwin/itwinui-react/cjs/core/utils";
 
 
-//NEW POINT GENERATOR
+type IssueType = "float" | "road" | "lightening" | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage" | "other" | "all";
+
+
+// Define an interface for issue data
+interface Issue {
+  issueType: "float" | "road" | "lightening" | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage" | "other";
+  longitude: number;
+  latitude: number;
+  // ... include other properties as they appear in your data
+}
+/*/NEW POINT GENERATOR
 interface IssueMarker {
   location: {
     x: number;
@@ -31,26 +42,20 @@ interface IssueMarker {
 
 export class UserLocationPointGenerator extends BasePointGenerator {
   private issueMarkers: IssueMarker[] = [];
-  private heatmapDecorator: HeatmapDecorator;
-
-  constructor(issueMarkers: IssueMarker[], heatmapDecorator: HeatmapDecorator) {
-    super();
-    this.issueMarkers = issueMarkers;
-    this.heatmapDecorator = heatmapDecorator;
-  }
 
   public generatePoints(numPoints: number, range: Range2d): Point3d[] {
     const points: Point3d[] = [];
 
     this.issueMarkers.forEach(issue => {
       for (let i = 0; i < issue.intensity; i++) {
-        points.push(new Point3d(issue.location.x, issue.location.y, 0));
+        points.push(new Point3d(issue.location.x, issue.location.y, i*10));
       }
     });
 
     return points;
   }
 }
+*/
 
 export const HeatmapDecoratorWidget = () => {
   const viewport = useActiveViewport();
@@ -60,6 +65,7 @@ export const HeatmapDecoratorWidget = () => {
   const [isHeatmapDisplayed, setIsHeatmapDisplayed] = useState(false);
   const [rangeState, setRangeState] = React.useState<Range2d>(Range2d.createNull());
   const [heightState, setHeightState] = React.useState<number>(0);
+  const [selectedIssueType, setSelectedIssueType] = useState<string>("all"); // "all" for all types or specific type
 
 
   const viewInit = useCallback((vp: ScreenViewport) => {
@@ -106,13 +112,14 @@ export const HeatmapDecoratorWidget = () => {
         return;
       const allIssues = await mongoAppApi.getAllIssues();
 
- 
-      const allPoints: Point3d[] = await Promise.all(allIssues.map(async (issue : any)  => {
-        const cartographic = Cartographic.fromDegrees({longitude: parseFloat(issue.longitude), latitude : parseFloat(issue.latitude), height: 10 });
+       // Filter issues based on selectedIssueType
+       const filteredIssues = allIssues.filter((issue: Issue) => selectedIssueType === "all" || issue.issueType === selectedIssueType);
+
+      const allPoints: Point3d[] = await Promise.all(filteredIssues.map(async (issue : any)  => {
+        const cartographic = Cartographic.fromDegrees({longitude: parseFloat(issue.longitude), latitude : parseFloat(issue.latitude), height: 1 });
         const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic([cartographic]);
           if (spatialLocation.length > 0) {
-          return new Point3d(spatialLocation[0].y  , spatialLocation[0].x  , spatialLocation[0].z);
-
+          return new Point3d(spatialLocation[0].x  , spatialLocation[0].y  , spatialLocation[0].z);
         }
       }));
 
@@ -123,7 +130,7 @@ export const HeatmapDecoratorWidget = () => {
       const range = Range2d.createXYXY(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys));
       range.expandInPlace(0.05)
       heatmapDecorator.current.setPoints(validPoints);
-      heatmapDecorator.current.setSpreadFactor(0.001); // Adjust as needed
+      heatmapDecorator.current.setSpreadFactor(0.1); // Adjust as needed
       heatmapDecorator.current.setHeight(0)
       heatmapDecorator.current.setRange(range);
       HeatmapDecoratorApi.enableDecorations(heatmapDecorator.current);
@@ -133,6 +140,9 @@ export const HeatmapDecoratorWidget = () => {
     _loadMongoData();
   }, [viewInit, viewport, heatmapDecorator]);
 
+  const handleIssueTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedIssueType(event.target.value as IssueType);
+  };
 
   const toggleHeatmap = () => {
     if (!viewport || !heatmapDecorator.current) { return; }
@@ -146,9 +156,22 @@ export const HeatmapDecoratorWidget = () => {
 
   return (
     <div className="sample-options">
+       <select value={selectedIssueType} onChange={handleIssueTypeChange}>
+        <option value="all">All Issues</option>
+        <option value="float">Float</option>
+        <option value="road">Road</option>
+        <option value="lightening">Lightening</option>
+        <option value="maintenance">Maintenance</option>    
+        <option value="noise">Noise</option>
+        <option value="crime">Crime</option>   
+        <option value="traffic congestion">Trafic Congestion</option>
+        <option value="garbage">Garbage</option>
+        <option value="other">Other</option>
+        </select>
+
       <div className="sample-grid">
         <Alert type="informational" className="no-icon">
-          Click the button to display the heatmap at your location.
+          Select the issue types that you want to see.
         </Alert>
         <Button onClick={toggleHeatmap}>
           {isHeatmapDisplayed ? "Hide Heatmap" : "Show Heatmap"}

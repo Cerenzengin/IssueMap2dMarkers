@@ -6,10 +6,10 @@ import MarkerPinApi from "./MarkerPinApi";
 import { MarkerPinDecorator } from "./common/marker-pin/MarkerPinDecorator";
 import GeoLocationApi from "./GeoLocationApi";
 import { Cartographic } from "@itwin/core-common";
-import { IModelApp } from "@itwin/core-frontend";
 import HeatmapDecorator from "./HeatmapDecorator"; // Import HeatmapDecorator from your HeatmapDecorator.tsx file
 import { mongoAppApi } from "./common/mongo";
 import HeatmapDecoratorApi from "./HeatmapDecoratorApi";
+import { imageElementFromUrl, IModelApp } from "@itwin/core-frontend";
 
 export interface IssueMarker {
   point: Point3d;
@@ -19,6 +19,7 @@ export interface IssueMarker {
 }
 
 const DigercodWidget = () => {
+  const [imagesLoadedState, setImagesLoadedState] = React.useState<boolean>(false);
   const viewport = useActiveViewport();
   const [showMarkers, setShowMarkers] = useState<boolean>(true);
   const [selectedIssueType, setSelectedIssueType] = useState<"float" | "road" | "lightening"  | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage"| "other">("float")
@@ -29,22 +30,29 @@ const DigercodWidget = () => {
   const [markerPinDecorator] = React.useState<MarkerPinDecorator>(() => {
     return MarkerPinApi.setupDecorator();
   });
-  const [heatmapDecorator] = React.useState<HeatmapDecorator>(() => {
-    return new HeatmapDecorator();
-  });
   const [inserted, setInserted] = React.useState<boolean>(false);
   
-  useEffect(() => {
-    // Load and display heatmap
-    if (userLocation && markers.length > 0) {
-      const points = markers.map(marker => marker.point);
 
-      heatmapDecorator.setPoints(points);
-      heatmapDecorator.setSpreadFactor(10); // Adjust the spread factor as needed
-      HeatmapDecoratorApi.enableDecorations(heatmapDecorator);
-    }
-  }, [userLocation, markers]);
-
+  
+ /*/ The code is in the MarkerPinWidget but does not seem to have been put into DigerCod
+/** Load the images on widget startup */
+useEffect(() => {
+  MarkerPinApi._images = new Map();
+  const p1 = imageElementFromUrl("pin_google_maps.svg").then((image) => {
+  MarkerPinApi._images.set("pin_google_maps.svg", image);
+  });
+  const p2 = imageElementFromUrl("pin_celery.svg").then((image) => {
+  MarkerPinApi._images.set("pin_celery.svg", image);
+  });
+  const p3 = imageElementFromUrl("pin_poloblue.svg").then((image) => {
+  MarkerPinApi._images.set("pin_poloblue.svg", image);
+  });
+  
+  Promise.all([p1, p2, p3])
+    .then(() => setImagesLoadedState(true))
+    .catch((error) => console.error(error));
+  }, []);
+//
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -106,7 +114,7 @@ const DigercodWidget = () => {
     setDescription("");
     setPhoto(undefined);
 
-    const insertionResponse = await mongoAppApi.insertIssue(selectedIssueType, description, spatialLocation[0].x, spatialLocation[0].y)
+    const insertionResponse = await mongoAppApi.insertIssue(selectedIssueType, description,  spatialLocation[0].y,spatialLocation[0].x)
     console.log(insertionResponse)
     setInserted(true);
 
@@ -118,12 +126,18 @@ const DigercodWidget = () => {
   };
   
   const _loadMongoData = async () => {
-    MarkerPinApi.clearAllMarkers(markerPinDecorator);
-    const allIssues = await mongoAppApi.getAllIssues()
-    allIssues.forEach((issue: any) => {
-      MarkerPinApi.addDigerMarkerPoint(markerPinDecorator,  new Point3d(issue.latitude, issue.longitude, 0), MarkerPinApi._images.get("pin_google_maps.svg")!);
-    });
+    if (imagesLoadedState) {
+      MarkerPinApi.clearAllMarkers(markerPinDecorator);
+      const allIssues = await mongoAppApi.getAllIssues()
+      allIssues.forEach((issue: any) => {
+        MarkerPinApi.addDigerMarkerPoint(markerPinDecorator,  new Point3d(issue.longitude, issue.latitude, 0), MarkerPinApi._images.get("pin_google_maps.svg")!);
+      });
+    }
+    else {
+      alert("Images are not loaded yet.");
+    }
   }
+
 
   const handleToggleMarkers = () => {
     setShowMarkers(!showMarkers);

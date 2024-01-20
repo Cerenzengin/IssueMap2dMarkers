@@ -1,8 +1,3 @@
-/*---------------------------------------------------------------------------------------------
- * Copyright (c) Bentley Systems, Incorporated. All rights reserved.
- * See LICENSE.md in the project root for license terms and full copyright notice.
- *--------------------------------------------------------------------------------------------*/
-
 import "./App.scss";
 import { DigercodWidgetProvider } from "./Digercod";
 import { MarkerPinWidgetProvider } from "./MarkerPinWidget"; 
@@ -85,7 +80,7 @@ const App: React.FC = () => {
  const [cesiumAssetId, setCesiumAssetId] = useState(
    process.env.IMJS_CESIUM_ASSET_ID || "eyJqdGkiOiI1ZmE5OTExZi1kYWJhLTRlMzQtYWE2Yi0yN2JhYmZjMTM5NzkiLCJpZCI6MTgxMDM1LCJpYXQiOjE3MDEwOTY4NDF9"
  );
- 
+
   const accessToken = useAccessToken();
 
   const authClient = Auth.getClient();
@@ -183,7 +178,7 @@ const App: React.FC = () => {
     const { bottomPanel } = event.frontstageDef;
     bottomPanel && (bottomPanel.size = 250);
   });
-  
+
   return (
     <div className="viewer-container">
       {!accessToken && (
@@ -249,4 +244,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
