@@ -16,7 +16,7 @@ export class mongoAppApi {
     }
   }
 
-  public static async insertIssue(issueType: String, description: String, latitude: Number, longitude: Number) {
+  public static async insertIssue(issueType: String, description: String, latitude: Number, longitude: Number, photo: string | undefined) {
     try { 
       const email = "cerenz.98@gmail.com";
       const password = "Pa55w0rd!";
@@ -24,7 +24,7 @@ export class mongoAppApi {
       const credentials = Realm.Credentials.emailPassword(email, password);
       const user = await mongoAppApi.app.logIn(credentials);
       console.log("getAllIssues User Logged in ", user.id);
-      const epd = await user.functions.insertIssue(issueType, description, latitude, longitude);
+      const epd = await user.functions.insertIssue(issueType, description, latitude, longitude, photo);
       return epd;
     } catch (error) {
       throw error

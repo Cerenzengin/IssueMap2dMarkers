@@ -106,39 +106,40 @@ export const HeatmapDecoratorWidget = () => {
     heatmapDecorator.current && heatmapDecorator.current.setRange(rangeState);
   }, [rangeState]);
 
+  const _loadMongoData = async () => {
+    if (!viewport || !heatmapDecorator.current)
+      return;
+    const allIssues = await mongoAppApi.getAllIssues();
+
+     // Filter issues based on selectedIssueType
+     const filteredIssues = allIssues.filter((issue: Issue) => selectedIssueType === "all" || issue.issueType === selectedIssueType);
+
+    const allPoints: Point3d[] = await Promise.all(filteredIssues.map(async (issue : any)  => {
+      const cartographic = Cartographic.fromDegrees({longitude: parseFloat(issue.longitude), latitude : parseFloat(issue.latitude), height: 1 });
+      const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic([cartographic]);
+        if (spatialLocation.length > 0) {
+        return new Point3d(spatialLocation[0].x  , spatialLocation[0].y  , spatialLocation[0].z);
+      }
+    }));
+
+    // Filter out any undefined values from allPoints
+    const validPoints = allPoints.filter(Boolean);
+    const xs = validPoints.map(point => point.x);
+    const ys = validPoints.map(point => point.y);
+    const range = Range2d.createXYXY(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys));
+    range.expandInPlace(0.05)
+    heatmapDecorator.current.setPoints(validPoints);
+    heatmapDecorator.current.setSpreadFactor(0.1); // Adjust as needed
+    heatmapDecorator.current.setHeight(0)
+    heatmapDecorator.current.setRange(range);
+    HeatmapDecoratorApi.enableDecorations(heatmapDecorator.current);
+    setIsHeatmapDisplayed(true);
+  };
+
   useEffect(() => {
-    const _loadMongoData = async () => {
-      if (!viewport || !heatmapDecorator.current)
-        return;
-      const allIssues = await mongoAppApi.getAllIssues();
-
-       // Filter issues based on selectedIssueType
-       const filteredIssues = allIssues.filter((issue: Issue) => selectedIssueType === "all" || issue.issueType === selectedIssueType);
-
-      const allPoints: Point3d[] = await Promise.all(filteredIssues.map(async (issue : any)  => {
-        const cartographic = Cartographic.fromDegrees({longitude: parseFloat(issue.longitude), latitude : parseFloat(issue.latitude), height: 1 });
-        const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic([cartographic]);
-          if (spatialLocation.length > 0) {
-          return new Point3d(spatialLocation[0].x  , spatialLocation[0].y  , spatialLocation[0].z);
-        }
-      }));
-
-      // Filter out any undefined values from allPoints
-      const validPoints = allPoints.filter(Boolean);
-      const xs = validPoints.map(point => point.x);
-      const ys = validPoints.map(point => point.y);
-      const range = Range2d.createXYXY(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys));
-      range.expandInPlace(0.05)
-      heatmapDecorator.current.setPoints(validPoints);
-      heatmapDecorator.current.setSpreadFactor(0.1); // Adjust as needed
-      heatmapDecorator.current.setHeight(0)
-      heatmapDecorator.current.setRange(range);
-      HeatmapDecoratorApi.enableDecorations(heatmapDecorator.current);
-      setIsHeatmapDisplayed(true);
-    };
  
     _loadMongoData();
-  }, [viewInit, viewport, heatmapDecorator]);
+  }, [selectedIssueType,viewInit, viewport, heatmapDecorator]);
 
   const handleIssueTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedIssueType(event.target.value as IssueType);

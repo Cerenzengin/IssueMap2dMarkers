@@ -33,8 +33,13 @@ export default class MarkerPinApi {
     decorator.addPoint(point, pinImage);
   }
   public static addDigerMarkerPoint(decorator: MarkerPinDecorator, point: Point3d, pinImage: HTMLImageElement) {
-    console.log(`addMarkerPoint ${point} and pinImage = ${pinImage}`);
+    console.log(`addDigerMarkerPoint ${point} and pinImage = ${pinImage}`);
     decorator.addDigerPoint(point, pinImage);
+  }
+  public static addDigerMarkerPointWithDetail(decorator: MarkerPinDecorator, point: Point3d, description: string, title: string, photo: string, pinImage: HTMLImageElement) {
+    console.log(`addDigerMarkerPointWithDetail ${point} and pinImage = ${pinImage}`);
+
+    decorator.addDigerPointWithDetail(point, description, title, photo, pinImage);
   }
   public static clearAllMarkers(decorator: MarkerPinDecorator)  {
     decorator.clearDigerMarkers();

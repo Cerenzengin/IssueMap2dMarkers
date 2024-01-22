@@ -74,17 +74,19 @@ class SamplePinMarker extends Marker {
     if (markerData.title) {
       this.toolTipTitle = markerData.title;
       this.toolTipDescription = markerData.description ? markerData.description : "";
-      tooltip = markerData.title;
       if (markerData.description) {
-        tooltip += `<br>${markerData.description}`;
+        tooltip += `<br>${this.toolTipTitle}: ${markerData.description}`;
       }
     } else {
       this.toolTipTitle = title;
       this.toolTipDescription = description ? description : "";
-      tooltip = title;
       if (description) {
-        tooltip += `<br>${description}`;
+        tooltip += `<br>${this.toolTipTitle}: ${this.toolTipDescription}`;
       }
+    }
+
+    if (this.data) {
+      tooltip += `<br><img src="${this.data}" alt="Image" style="width:800px; height:auto;">`;
     }
     const div = document.createElement("div");
     div.innerHTML = tooltip;
@@ -329,6 +331,17 @@ export class MarkerPinDecorator implements Decorator {
     if (undefined !== vp)
       vp.invalidateDecorations();
   }
+
+  public addDigerPointWithDetail(point: Point3d, description: string, title: string, photo: string, pinImage: HTMLImageElement): void {
+    const markerData: MarkerData = { point, description, title, data: photo };
+    this._digerMarkerSet.markers.add(new SamplePinMarker(markerData, "Manual", "", pinImage, this._digerMarkerSet));
+
+    // When the markers change we notify the viewmanager to remove the existing decorations
+    const vp = IModelApp.viewManager.selectedView;
+    if (undefined !== vp)
+      vp.invalidateDecorations();
+  }
+
 
   /* Adds a single new marker to the "manual" markerset */
   public addMarkerPoint(markerData: MarkerData, pinImage: HTMLImageElement, title?: string, description?: string, scale?: Range1dProps, onMouseButtonCallback?: any): void {
