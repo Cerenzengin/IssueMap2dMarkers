@@ -7,6 +7,7 @@ import { ViewSetup } from "./common/ViewSetup";
 import { UiFramework } from "@itwin/appui-react";
 import { mapLayerOptions } from "./common/MapLayerOptions";
 import { HeatmapDecoratorWidgetProvider } from "./HeatmapDecoratorWidget";
+import {   SurveyUiProvider } from "./SurveyWidget";
 
 import { DisplayStyle3dProps, GlobeMode,} from "@itwin/core-common";
 
@@ -206,7 +207,7 @@ const App: React.FC = () => {
             },
           }),
           new ViewerStatusbarItemsProvider(),
-          new TreeWidgetUiItemsProvider(),
+          //new TreeWidgetUiItemsProvider(),
           new PropertyGridUiItemsProvider({
             propertyGridProps: {
               autoExpandChildCategories: true,
@@ -229,7 +230,8 @@ const App: React.FC = () => {
           new MeasureToolsUiItemsProvider(),
           //Custom Providers:
           new MarkerPinWidgetProvider (),
-          new HeatmapDecoratorWidgetProvider () ,
+          new HeatmapDecoratorWidgetProvider (),
+          new SurveyUiProvider(),
         ]}
         // Bing and Mapbox keys:
         mapLayerOptions = { {BingMaps: { key: "key", value: bingMapsKey},

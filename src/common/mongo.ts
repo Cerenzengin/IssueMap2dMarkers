@@ -30,5 +30,35 @@ export class mongoAppApi {
       throw error
     }
   }
+
+  public static async getVotingResults() {
+    try { 
+      const email = "cerenz.98@gmail.com";
+      const password = "Pa55w0rd!";
+
+      const credentials = Realm.Credentials.emailPassword(email, password);
+      const user = await mongoAppApi.app.logIn(credentials);
+
+      return await user.functions.getVotingResults();
+    } catch (error) {
+      console.error("Failed to get voting results:", error);
+      throw error;
+    }
+  }
+
+  public static async submitVote(option: string) {
+    try { 
+      const email = "cerenz.98@gmail.com";
+      const password = "Pa55w0rd!";
+
+      const credentials = Realm.Credentials.emailPassword(email, password);
+      const user = await mongoAppApi.app.logIn(credentials);
+      
+      return await user.functions.submitVote(option);
+    } catch (error) {
+      console.error("Failed to submit vote:", error);
+      throw error;
+    }
+  }
 }
 
