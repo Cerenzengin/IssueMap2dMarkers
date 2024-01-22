@@ -127,9 +127,9 @@ export const HeatmapDecoratorWidget = () => {
     const xs = validPoints.map(point => point.x);
     const ys = validPoints.map(point => point.y);
     const range = Range2d.createXYXY(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys));
-    range.expandInPlace(0.1)
+    range.expandInPlace(0.05)
     heatmapDecorator.current.setPoints(validPoints);
-    heatmapDecorator.current.setSpreadFactor(0.2); // Adjust as needed
+    heatmapDecorator.current.setSpreadFactor(0.1); // Adjust as needed
     heatmapDecorator.current.setHeight(0)
     heatmapDecorator.current.setRange(range);
     HeatmapDecoratorApi.enableDecorations(heatmapDecorator.current);

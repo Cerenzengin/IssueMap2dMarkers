@@ -13,7 +13,7 @@ import HeatmapDecoratorApi from "./HeatmapDecoratorApi";
 
 export interface IssueMarker {
   point: Point3d;
-  issueType: "float" | "road" | "lightening" | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage" | "other";
+  issueType: "flood" | "road" | "lightening" | "maintenance" | "noise" | "crime" | "garbage" | "other";
   description: string;
   photo?: File;
 }
@@ -22,7 +22,7 @@ const DigercodWidget = () => {
   const viewport = useActiveViewport();
   const [showMarkers, setShowMarkers] = useState<boolean>(true);
   const [imagesLoadedState, setImagesLoadedState] = React.useState<boolean>(false);
-  const [selectedIssueType, setSelectedIssueType] = useState<"float" | "road" | "lightening"  | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage"| "other">("float")
+  const [selectedIssueType, setSelectedIssueType] = useState<"flood" | "road" | "lightening"  | "maintenance" | "noise" | "crime"  | "garbage"| "other">("other")
   const [description, setDescription] = useState<string>("");
   const [photo, setPhoto] = useState<File | undefined>(undefined);
   const [markers, setMarkers] = useState<IssueMarker[]>([]);
@@ -161,7 +161,7 @@ const DigercodWidget = () => {
     setShowMarkers(!showMarkers);
   };
 
-  const handleIssueTypeChange = (value: "float" | "road" | "lightening"  | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage" | "other") => {
+  const handleIssueTypeChange = (value: "flood" | "road" | "lightening"  | "maintenance" | "noise" | "crime"  | "garbage" | "other") => {
     setSelectedIssueType(value);
   };
 
@@ -220,19 +220,18 @@ const DigercodWidget = () => {
         className="select-issue-type"
         placeholder="Select Issue Type"
         options={[
-          { value: "float", label: "Float" },
+          { value: "flood", label: "Flood" },
           { value: "road", label: "Road" },
           { value: "lightening", label: "Lightening" },
           { value: "maintenance", label: "Maintenance" },
           { value: "noise", label: "Noise" },
           { value: "crime", label: "Crime" },
-          { value: "traffic congestion", label: "Traffic Congestion" },
           { value: "garbage", label: "Garbage" },
           { value: "other", label: "Other" },
 
         ]}
         value={selectedIssueType}
-        onChange={(value) => handleIssueTypeChange(value as "float" | "road" | "lightening"  | "maintenance" | "noise" | "crime" | "traffic congestion" | "garbage" | "other")}
+        onChange={(value) => handleIssueTypeChange(value as "flood" | "road" | "lightening"  | "maintenance" | "noise" | "crime" | "garbage" | "other")}
       />
       <Textarea
         className="description-input"
