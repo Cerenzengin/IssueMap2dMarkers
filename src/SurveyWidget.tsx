@@ -7,18 +7,46 @@ import {
 } from "@itwin/appui-react";
 import { mongoAppApi } from "./common/mongo";
 import { Pie } from 'react-chartjs-2';
-import Chart from 'chart.js/auto';
+import { ChartData, ChartDataset } from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, PieController } from 'chart.js';
+
+// Registering the required components
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, PieController);
 
 
 // SurveyWidget component
 const SurveyWidget: React.FC = () => {
-  const [results, setResults] = useState<{ [key: string]: number }>({});
+  const [results, setResults] = useState<PieChartData>({
+    labels: ['Parking Lot', 'Children Playground', 'Greenery Area', 'Gym Equipment'],
+    datasets: [
+        {
+            label: '# of Votes',
+            data: [0, 0, 0, 0],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)'
+            ],
+            borderWidth: 1
+        }
+    ]
+});
 
+interface PieChartData {
+    labels: string[];
+    datasets: ChartDataset<'pie'>[];
+}
   useEffect(() => {
     const fetchResults = async () => {
       try {
         const response = await mongoAppApi.getVotingResults();
-        setResults(response);
       } catch (error) {
         console.error("Failed to fetch results:", error);
       }
@@ -45,13 +73,23 @@ const SurveyWidget: React.FC = () => {
     ],
   };
 
+
   const handleVote = async (option: string) => {
     try {
-      await mongoAppApi.submitVote(option);
+      const updatedResults = await mongoAppApi.submitVote(option);
       // Optionally, refetch or update results
       // Fetch results again to update the chart
-      const updatedResults = await mongoAppApi.getVotingResults();
-      setResults(updatedResults);
+
+         // Transform the object into chart data
+      const newData = results.datasets[0].data.map((_, index: any) => {
+           const label = results.labels[index];
+           return updatedResults[label] || 0;
+       });
+    
+       setResults((prevChartData: any) => ({
+                ...prevChartData,
+                datasets: [{ ...prevChartData.datasets[0], data: newData }]
+            }));
     } catch (error) {
       console.error("Failed to submit vote:", error);
     }
@@ -64,12 +102,8 @@ const SurveyWidget: React.FC = () => {
     <button style={{ margin: '5px 0' }} onClick={() => handleVote('Children Playground')}>Children Playground</button>
     <button style={{ margin: '5px 0' }} onClick={() => handleVote('Greenery Area')}>Greenery Area</button>
     <button style={{ margin: '5px 0' }} onClick={() => handleVote('Gym Equipment')}>Gym Equipment</button>
-
-
-    {Object.keys(results).length > 0 && (
-        <Pie data={data} />
-        )}    
-  </div>
+    <Pie data={results} />
+    </div>
   );
 };
 

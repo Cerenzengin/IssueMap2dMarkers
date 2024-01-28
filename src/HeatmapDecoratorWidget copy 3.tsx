@@ -106,15 +106,49 @@ export const HeatmapDecoratorWidget = () => {
     heatmapDecorator.current && heatmapDecorator.current.setRange(rangeState);
   }, [rangeState]);
 
+
+
+// Utility functions to calculate weights and intensity
+function squaredDistance(p1: Point3d, p2: Point3d): number {
+  return (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2;
+}
+
+function calculateWeights(points: Point3d[]): number[] {
+  const weights = points.map(_ => 0);
+
+  points.forEach((point, index) => {
+    points.forEach((otherPoint, otherIndex) => {
+      if (index !== otherIndex) {
+        weights[index] += squaredDistance(point, otherPoint);
+      }
+    });
+  });
+
+  return weights;
+}
+
+function scaleWeights(weights: number[]): number[] {
+  const maxWeight = Math.max(...weights);
+  const minWeight = Math.min(...weights);
+
+  return weights.map(weight => 0.25 + ((weight - minWeight) / (maxWeight - minWeight)) * 0.75);
+}
+
+
   const _loadMongoData = async () => {
     if (!viewport || !heatmapDecorator.current)
       return;
     const allIssues = await mongoAppApi.getAllIssues();
 
-     // Filter issues based on selectedIssueType
-     const filteredIssues = allIssues.filter((issue: Issue) => selectedIssueType === "all" || issue.issueType === selectedIssueType);
 
-    const allPoints: Point3d[] = await Promise.all(filteredIssues.map(async (issue : any)  => {
+     // Filter issues based on selectedIssueType
+     //const filteredIssues = allIssues.filter((issue: Issue) => selectedIssueType === "all" || issue.issueType === selectedIssueType);
+    // Filter issues based on selectedIssueType
+     const filteredIssues = selectedIssueType === "all" 
+    ? allIssues 
+    : allIssues.filter((issue: Issue) => issue.issueType === selectedIssueType);
+
+    let allPoints: Point3d[] = await Promise.all(filteredIssues.map(async (issue : any)  => {
       const cartographic = Cartographic.fromDegrees({longitude: parseFloat(issue.longitude), latitude : parseFloat(issue.latitude), height: 1 });
       const spatialLocation = await IModelApp.viewManager.selectedView!.iModel.spatialFromCartographic([cartographic]);
         if (spatialLocation.length > 0) {
@@ -122,14 +156,18 @@ export const HeatmapDecoratorWidget = () => {
       }
     }));
 
-    // Filter out any undefined values from allPoints
-    const validPoints = allPoints.filter(Boolean);
-    const xs = validPoints.map(point => point.x);
-    const ys = validPoints.map(point => point.y);
+    allPoints = allPoints.filter(Boolean); // Filter out any undefined values
+    const weights = calculateWeights(allPoints);
+    const scaledWeights = scaleWeights(weights);
+    allPoints = allPoints.map((point, index) => new Point3d(point.x, point.y, scaledWeights[index]));
+    
+    const xs = allPoints.map(point => point.x);
+    const ys = allPoints.map(point => point.y);
     const range = Range2d.createXYXY(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys));
-    range.expandInPlace(0.1)
-    heatmapDecorator.current.setPoints(validPoints);
+    range.expandInPlace(0.1);
+    heatmapDecorator.current.setPoints(allPoints);
     heatmapDecorator.current.setSpreadFactor(0.2); // Adjust as needed
+
     heatmapDecorator.current.setHeight(0)
     heatmapDecorator.current.setRange(range);
     HeatmapDecoratorApi.enableDecorations(heatmapDecorator.current);
@@ -203,3 +241,4 @@ export class HeatmapDecoratorWidgetProvider implements UiItemsProvider {
     return widgets;
   }
 };
+
