@@ -272,7 +272,7 @@ export class DigercodWidgetProvider implements UiItemsProvider {
     if (location === StagePanelLocation.Bottom) {
       widgets.push({
         id: "DigercodWidget",
-        label: "Digercod Widget",
+        label: "Enter the Issues",
         defaultState: WidgetState.Open,
         content: <DigercodWidget />,
       });

@@ -179,7 +179,7 @@ export const HeatmapDecoratorWidget = () => {
         {isHeatmapDisplayed && modelSpaceLocation && (
           <div>
             <p>Heatmap displayed on the map.</p>
-            <p>Model Space Coordinates: X: {modelSpaceLocation.x.toFixed(6)}, Y: {modelSpaceLocation.y.toFixed(6)}</p>
+            <p>Model Space Coordinates: X: {modelSpaceLocation.x.toFixed(1)}, Y: {modelSpaceLocation.y.toFixed(1)}</p>
           </div>
         )}
       </div>
@@ -195,7 +195,7 @@ export class HeatmapDecoratorWidgetProvider implements UiItemsProvider {
     if (location === StagePanelLocation.Right) {
       widgets.push({
         id: "HeatmapDecoratorWidget",
-        label: "Heatmap Decorator Selector",
+        label: "Heatmap for Each Issue",
         defaultState: WidgetState.Open,
         content: <HeatmapDecoratorWidget />
       });

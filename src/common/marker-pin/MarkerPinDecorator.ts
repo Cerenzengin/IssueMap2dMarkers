@@ -86,7 +86,7 @@ class SamplePinMarker extends Marker {
     }
 
     if (this.data) {
-      tooltip += `<br><img src="${this.data}" alt="Image" style="width:450px; height:auto;">`;
+      tooltip += `<br><img src="${this.data}" alt="Image" style="width:300px; height:auto;">`;
     }
     const div = document.createElement("div");
     div.innerHTML = tooltip;
