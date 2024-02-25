@@ -43,44 +43,10 @@ interface PieChartData {
     labels: string[];
     datasets: ChartDataset<'pie'>[];
 }
-  useEffect(() => {
-    const fetchResults = async () => {
-      try {
-        const response = await mongoAppApi.getVotingResults();
-      } catch (error) {
-        console.error("Failed to fetch results:", error);
-      }
-    };
 
-    fetchResults();
-  }, []);
-
- const data = {
-    labels: Object.keys(results),
-    datasets: [
-      {
-        label: 'Voting Results',
-        data: Object.values(results),
-        backgroundColor: [
-          '#FF6384',
-          '#36A2EB',
-          '#FFCE56',
-          '#4BC0C0',
-          // Add more colors if you have more options
-        ],
-        hoverOffset: 4,
-      },
-    ],
-  };
-
-
-  const handleVote = async (option: string) => {
+   const handleVote = async (option: string) => {
     try {
       const updatedResults = await mongoAppApi.submitVote(option);
-      // Optionally, refetch or update results
-      // Fetch results again to update the chart
-
-         // Transform the object into chart data
       const newData = results.datasets[0].data.map((_, index: any) => {
            const label = results.labels[index];
            return updatedResults[label] || 0;

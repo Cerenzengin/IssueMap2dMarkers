@@ -34,7 +34,7 @@ const DigercodWidget = () => {
     return new HeatmapDecorator();
   });
   const [inserted, setInserted] = React.useState<boolean>(false);
-  
+
   /** Load the images on widget startup */
   useEffect(() => {
     MarkerPinApi._images = new Map();
@@ -239,7 +239,6 @@ const DigercodWidget = () => {
         value={description}
         onChange={handleDescriptionChange}
       />
-      {/* Add input for photo upload */}
       <input type="file" accept="image/*" onChange={handlePhotoChange} />
 
       <Button className="add-marker-button" onClick={handleAddMarkerClick}>
@@ -247,7 +246,6 @@ const DigercodWidget = () => {
       </Button>
       <Button styleType="high-visibility" className="load-mongo-data-btn" onClick={() => _loadMongoData()}>See All Issues</Button>
 
-      {/* Display photos for each marker */}
       {showMarkers && markers.map((marker, index) => (
         <div key={index} className="marker-item">
           <p>Marker at Latitude: {marker.point.y.toFixed(6)}, Longitude: {marker.point.x.toFixed(6)}</p>

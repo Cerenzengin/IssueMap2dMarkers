@@ -14,11 +14,7 @@ import { Cartographic } from "@itwin/core-common";
 import HeatmapDecorator from "./HeatmapDecorator";
 import HeatmapDecoratorApi from "./HeatmapDecoratorApi";
 import { IModelApp, ScreenViewport } from "@itwin/core-frontend";
-import GeoLocationApi from "./GeoLocationApi";
-import {CirclePointGenerator, CrossPointGenerator} from "./common/point-selector/PointGenerators";
-import { BasePointGenerator } from './common/point-selector/PointGenerators';
 import { mongoAppApi } from "./common/mongo";
-import { getRandomValue } from "@itwin/itwinui-react/cjs/core/utils";
 
 
 type IssueType = "flood" | "road" | "lightening" | "maintenance" | "noise" | "crime"  | "garbage" | "other" | "all";
@@ -31,31 +27,7 @@ interface Issue {
   latitude: number;
   // ... include other properties as they appear in your data
 }
-/*/NEW POINT GENERATOR
-interface IssueMarker {
-  location: {
-    x: number;
-    y: number;
-  };
-  intensity: number;
-}
 
-export class UserLocationPointGenerator extends BasePointGenerator {
-  private issueMarkers: IssueMarker[] = [];
-
-  public generatePoints(numPoints: number, range: Range2d): Point3d[] {
-    const points: Point3d[] = [];
-
-    this.issueMarkers.forEach(issue => {
-      for (let i = 0; i < issue.intensity; i++) {
-        points.push(new Point3d(issue.location.x, issue.location.y, i*10));
-      }
-    });
-
-    return points;
-  }
-}
-*/
 
 export const HeatmapDecoratorWidget = () => {
   const viewport = useActiveViewport();
